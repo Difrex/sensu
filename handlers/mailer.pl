@@ -98,12 +98,14 @@ sub get_previous_status {
     my $check_run_file = '/etc/sensu/handlers/run/' . $check_name;
 
     my $previous_check_status;
-    open my $run, '<', $check_run_file or warn "Cannot open file: $!\n";
-    if ($run) {
+    if ( -e $check_run_file ) {
+        open my $run, '<', $check_run_file or warn "Cannot open file: $!\n";
         while (<$run>) {
             $previous_check_status = $_;
         }
         close($run);
+
+        write_status( $check_name, $status );
 
         return $previous_check_status;
     }
@@ -118,20 +120,13 @@ sub get_previous_status {
 
 # Check status
 sub status_change {
-    my ($message) = @_;
-
-    my $check_name = $message->{check}->{name};
-
-    # Current check status
     my $current_check_status = $message->{check}->{status};
 
     # Get provious check status
     my $previous_check_status
         = get_previous_status( $check_name, $current_check_status );
 
-    if (   ( $previous_check_status == -1 )
-        or ( $previous_check_status eq $current_check_status ) )
-    {
+    if ( $previous_check_status == $current_check_status ) {
         return -1;
     }
     else {
@@ -144,6 +139,9 @@ sub status_change {
 if ( status_change == 0 ) {
 
     `cat $mail_file | $mail_cmd -v -s "'$mail_subg'" $mail_to`;
+}
+else {
+    print "Status not changes\n";
 }
 
 # Remove temp file
