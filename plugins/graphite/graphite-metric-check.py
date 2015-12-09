@@ -46,6 +46,13 @@ class GraphiteMetricCheck(SensuPluginCheck):
           help='Integer critical level to output'
         )
         self.parser.add_argument(
+          '-C',
+          '--critupdown',
+          type=str,
+          required=True,
+          help='-C <up|down>'
+        )
+        self.parser.add_argument(
           '-s',
           '--host',
           required=True,
@@ -95,14 +102,24 @@ class GraphiteMetricCheck(SensuPluginCheck):
 
         avg = getGraphiteValue(self.options.host, self.options.port, self.options.target, self.options.from_time, self.options.to_time)
 
-        if avg > self.options.warning and avg < self.options.critical:
-          self.warning(self.options.target + ' ' + str(avg))
-        elif avg < self.options.warning:
-          self.ok(self.options.target + ' ' + str(avg))
-        elif avg >= self.options.critical:
-          self.critical(self.options.target + ' ' + str(avg))
+        if self.options.critupdown == 'up':
+            if avg >= self.options.warning and avg < self.options.critical:
+              self.warning(self.options.target + ' ' + str(avg))
+            elif avg < self.options.warning:
+              self.ok(self.options.target + ' ' + str(avg))
+            elif avg >= self.options.critical:
+              self.critical(self.options.target + ' ' + str(avg))
+            else:
+              self.unknown(self.options.message)
         else:
-          self.unknown(self.options.message)
+            if avg > self.options.critical and avg <= self.options.warning:
+              self.warning(self.options.target + ' ' + str(avg))
+            elif avg > self.options.warning:
+              self.ok(self.options.target + ' ' + str(avg))
+            elif avg <= self.options.critical:
+              self.critical(self.options.target + ' ' + str(avg))
+            else:
+              self.unknown(self.options.message)
 
 if __name__ == "__main__":
     f = GraphiteMetricCheck()
