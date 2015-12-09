@@ -8,7 +8,7 @@ import requests
 def getGraphiteValue(host, port, target, from_time, to_time):
     
     request_url = 'http://' + host + ':' + str(port) + '/render'
-    ranges = { 'from': from_time, 'to': to_time, 'target': target, 'format': 'json' }
+    ranges = { 'from': '-' + from_time, 'to': to_time, 'target': target, 'format': 'json' }
 
 
     r = requests.get(request_url, params=ranges)
@@ -71,7 +71,7 @@ class GraphiteMetricCheck(SensuPluginCheck):
           '--from_time',
           default='-5min',
           type=str,
-          help='from time. Default = -5min'
+          help='from time. without -. Example: -f 15h. Default value: -5min'
         )
         self.parser.add_argument(
           '-o',
