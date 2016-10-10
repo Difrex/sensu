@@ -30,5 +30,5 @@ optional arguments:
 
 * sensu-python-plugin
 * libjson-python
-
+* python-requests
 
